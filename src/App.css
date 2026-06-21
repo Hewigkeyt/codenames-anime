@@ -1,0 +1,195 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Inter:wght@400;500;600&display=swap");
+
+:root {
+  --bg:        #f5f5f5;
+  --bg2:       #1a1927;
+  --bg3:       #2d2d3a;
+  --cream:     #e8e4d9;
+  --cream-dim: #9994888;
+  --red:       #c1121f;
+  --red-dim:   #7a0b13;
+  --blue:      #1d6fb5;
+  --blue-dim:  #133d63;
+  --black:     #111111;
+  --white-card:#d4cfc4;
+  --gold: #F5C518;
+  --surface: #162437;
+  --surface2: #1E3045;
+  --text: #EEF2F7;
+  --radius:    10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: "Inter", sans-serif;
+  min-height: 100vh;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid #2d2d3a;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 50%, var(--surface) 100%);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header-left { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.logo { display: flex; flex-direction: column; line-height: 1.1; }
+.logo-jp {
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+.logo-en {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.game-id {
+  font-size: 13px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.game-id strong { color: var(--gold); font-size: 15px; letter-spacing: 0.1em; }
+.year-range {
+  background: var(--bg3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+/* ── Score pills ── */
+.score-pills { display: flex; gap: 8px; }
+.pill {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.pill-blue { background: var(--blue-dim); color: #7eb8f7; }
+.pill-red  { background: var(--red-dim);  color: #f7857b; }
+
+/* ── Buttons ── */
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: none;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn:hover { opacity: 0.85; }
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary { background: var(--gold); color: #1a1200; }
+.btn-blue    { background: var(--blue-dim); color: #7eb8f7; border: 1px solid var(--blue); }
+.btn-red     { background: var(--red-dim);  color: #f7857b; border: 1px solid var(--red); }
+.btn-ghost   { background: var(--bg3); color: var(--cream); }
+.btn-lg      { padding: 14px 32px; font-size: 16px; }
+
+.spy-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.spy-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.spy-badge-red  { background: var(--red-dim);  color: #f7857b; }
+.spy-badge-blue { background: var(--blue-dim); color: #7eb8f7; }
+
+/* ── Main ── */
+.main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.empty-title {
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: 96px;
+  font-weight: 700;
+  color: var(--bg3);
+  line-height: 1;
+  user-select: none;
+}
+.gold {
+  color: var(--gold);
+  text-shadow: 4px 0 #2d2d3a, -4px 0 #2d2d3a, 0 4px #2d2d3a, 0 -4px #2d2d3a,
+             3px 3px #2d2d3a, -3px -3px #2d2d3a, 3px -3px #2d2d3a, -3px 3px #2d2d3a;
+}
+
+.empty-state p { color: #666; font-size: 15px; }
+.spin { animation: spin 2s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.join-input {
+  background: var(--surface);
+  border: 1px solid #3a3a4a;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 600;
+  padding: 10px 16px;
+  width: 100%;
+  max-width: 240px;
+  font-family: "Inter", sans-serif;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+.join-input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+/* ── Error ── */
+.error {
+  background: #3d0b0b;
+  color: #f7857b;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
