@@ -95,13 +95,13 @@ export default function App() {
     setJoinGameId("");
   }
 
-  async function handleNewGame({ yearStart, yearEnd }) {
+  async function handleNewGame({ yearStart, yearEnd, difficulty }) {
     setLoading(true);
     setError(null);
     setShowModal(false);
 
     try {
-      const gameData = await generateGame(yearStart, yearEnd);
+      const gameData = await generateGame(yearStart, yearEnd, difficulty);
       const { data, error } = await supabase
         .from("codenames_games")
         .insert(gameData)
@@ -190,6 +190,9 @@ export default function App() {
               <span className="year-range">
                 {game.year_start}–{game.year_end}
               </span>
+              {game.difficulty && (
+                <span className="year-range">{game.difficulty}</span>
+              )}
             </div>
           )}
         </div>
@@ -282,7 +285,7 @@ export default function App() {
         {loading && (
           <div className="empty-state">
             <div className="empty-kanji spin">⏳</div>
-            <p>We are building the grid…</p>
+            <p>We are loading the grid…</p>
           </div>
         )}
 

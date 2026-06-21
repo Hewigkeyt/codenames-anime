@@ -6,6 +6,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 export default function NewGameModal({ onConfirm, onClose }) {
   const [yearStart, setYearStart] = useState(1990);
   const [yearEnd, setYearEnd] = useState(2005);
+  const [difficulty, setDifficulty] = useState("normal");
   const [error, setError] = useState(null);
 
   function handleConfirm() {
@@ -17,7 +18,7 @@ export default function NewGameModal({ onConfirm, onClose }) {
       setError("Choose at least a 5 years period");
       return;
     }
-    onConfirm({ yearStart, yearEnd });
+    onConfirm({ yearStart, yearEnd, difficulty });
   }
 
   return (
@@ -67,6 +68,27 @@ export default function NewGameModal({ onConfirm, onClose }) {
               {label}
             </button>
           ))}
+        </div>
+
+        <div className="difficulty-select">
+          <span className="presets-label">Difficulty</span>
+          <div className="difficulty-options">
+            {[
+              ["casual", "Casual", "Only popular anime"],
+              ["normal", "Normal", "Moderately popular included"],
+              ["hardcore", "Hardcore", "No filter, anything goes"],
+            ].map(([value, label, hint]) => (
+              <button
+                key={value}
+                type="button"
+                className={`difficulty-btn ${difficulty === value ? "active" : ""}`}
+                onClick={() => setDifficulty(value)}
+              >
+                <span className="difficulty-label">{label}</span>
+                <span className="difficulty-hint">{hint}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {error && <p className="modal-error">{error}</p>}
