@@ -48,5 +48,7 @@ This builds the app and pushes the `dist/` folder to the `gh-pages` branch.
 
 ## Known limitations
 
-- Difficulty can vary a lot depending on the year range — some periods surface fairly obscure characters alongside well-known ones.
+- Even in casual mode that only considers the top 1% well known anime, the game is pretty difficult.
+- I added a DBZ mode which is more playable.
 - No win/lose or player turn detection. The game tracks revealed cards but assume players are following the rules IRL.
+- Feel free to fork the project and add stuff.

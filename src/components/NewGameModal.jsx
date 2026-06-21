@@ -77,6 +77,7 @@ export default function NewGameModal({ onConfirm, onClose }) {
               ["casual", "Casual", "Only popular anime"],
               ["normal", "Normal", "Moderately popular included"],
               ["hardcore", "Hardcore", "No filter, anything goes"],
+              ["dbz", "Dragon Ball Z", "Nothing else"],
             ].map(([value, label, hint]) => (
               <button
                 key={value}

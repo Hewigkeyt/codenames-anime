@@ -30,6 +30,23 @@ query ($page: Int, $start: FuzzyDateInt, $end: FuzzyDateInt) {
 }
 `;
 
+const DBZ_QUERY = `
+query ($page: Int) {
+  Media(id: 813) {
+    title { romaji }
+    startDate { year }
+    characters(page: $page, perPage: 25) {
+      pageInfo { hasNextPage }
+      nodes {
+        id
+        name { full }
+        image { large }
+      }
+    }
+  }
+}
+`;
+
 // Each difficulty defines maxPageFraction: caps the eligible popularity-rank
 // pool as a fraction of lastPage (e.g. 0.2 = only the most popular 20% of
 // anime in that period are eligible to be sampled from at all).
@@ -40,6 +57,7 @@ const DIFFICULTY_SETTINGS = {
   casual:   { maxPageFraction: 0.01 },
   normal:   { maxPageFraction: 0.03 },
   hardcore: { maxPageFraction: 1.00 },
+  dbz:      { isDbz: true }
 };
 
 const MAX_PAGES_TO_FETCH = 12; // safety cap so we never hammer the API too hard
@@ -67,63 +85,110 @@ async function fetchPage(page, start, end) {
   return json.data.Page;
 }
 
+async function fetchDbzPage(page) {
+  const res = await fetch(ANILIST_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      query: DBZ_QUERY,
+      variables: { page },
+    }),
+  });
+  const json = await res.json();
+  if (json.errors) throw new Error(json.errors[0].message);
+  return json.data.Media;
+}
+
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
 export async function generateGame(yearStart, yearEnd, difficulty = "normal") {
+
   const settings = DIFFICULTY_SETTINGS[difficulty] ?? DIFFICULTY_SETTINGS.normal;
-  const start = yearStart * 10000 + 101;   // ex: 19800101
-  const end   = yearEnd   * 10000 + 1231;  // ex: 19871231
-
-  // 1. First request to find out how many pages exist for this period
-  const first = await fetchPage(1, start, end);
-  const lastPage = first.pageInfo.lastPage;
-
-  // 2. Cap the eligible popularity-rank pool based on difficulty.
-  //    This already scales with year span since lastPage does too.
-  const eligiblePages = Math.max(1, Math.round(lastPage * settings.maxPageFraction));
-
-  // 3. Sample from the whole eligible pool, capped only for API safety
-  const pagesWanted = Math.min(MAX_PAGES_TO_FETCH, eligiblePages);
-
-  // 4. Draw pages randomly from the eligible (capped) pool only
-  const eligiblePageNumbers = [...Array(eligiblePages).keys()].map((i) => i + 1);
-  const allPages = shuffle(eligiblePageNumbers);
-  const pagesToFetch = allPages.slice(0, pagesWanted);
-
-  // 5. Collect characters
   const characters = [];
   const seen = new Set();
 
-  function addFromPage(data) {
-    for (const media of data.media) {
-      for (const char of media.characters.nodes) {
+  if (settings.isDbz) {
+    // --- DBZ MODE LOGIC ---
+    let currentPage = 1;
+    let hasNextPage = true;
+
+    while (hasNextPage && currentPage <= 5) {
+      const mediaData = await fetchDbzPage(currentPage);
+      const charConnection = mediaData.characters;
+
+      for (const char of charConnection.nodes) {
         if (!char.image?.large || char.image.large.includes("default")) continue;
         if (seen.has(char.id)) continue;
+        
         seen.add(char.id);
         characters.push({
           anilist_id: char.id,
           name: char.name.full,
           image_url: char.image.large,
-          anime_title: media.title.romaji,
-          anime_year: media.startDate.year,
+          anime_title: mediaData.title.romaji,
+          anime_year: mediaData.startDate.year,
         });
       }
+
+      hasNextPage = charConnection.pageInfo.hasNextPage;
+      if (hasNextPage) {
+        currentPage++;
+        await sleep(400);
+      }
+    }
+  } else {
+    const start = yearStart * 10000 + 101;   // ex: 19800101
+    const end   = yearEnd   * 10000 + 1231;  // ex: 19871231
+
+    // 1. First request to find out how many pages exist for this period
+    const first = await fetchPage(1, start, end);
+    const lastPage = first.pageInfo.lastPage;
+
+    // 2. Cap the eligible popularity-rank pool based on difficulty.
+    //    This already scales with year span since lastPage does too.
+    const eligiblePages = Math.max(1, Math.round(lastPage * settings.maxPageFraction));
+
+    // 3. Sample from the whole eligible pool, capped only for API safety
+    const pagesWanted = Math.min(MAX_PAGES_TO_FETCH, eligiblePages);
+
+    // 4. Draw pages randomly from the eligible (capped) pool only
+    const eligiblePageNumbers = [...Array(eligiblePages).keys()].map((i) => i + 1);
+    const allPages = shuffle(eligiblePageNumbers);
+    const pagesToFetch = allPages.slice(0, pagesWanted);
+
+    // 5. Collect characters
+
+
+    function addFromPage(data) {
+      for (const media of data.media) {
+        for (const char of media.characters.nodes) {
+          if (!char.image?.large || char.image.large.includes("default")) continue;
+          if (seen.has(char.id)) continue;
+          seen.add(char.id);
+          characters.push({
+            anilist_id: char.id,
+            name: char.name.full,
+            image_url: char.image.large,
+            anime_title: media.title.romaji,
+            anime_year: media.startDate.year,
+          });
+        }
+      }
+    }
+
+    // Reuse page 1 results if it's among the pages we want (saves a request)
+    if (pagesToFetch.includes(1)) {
+      addFromPage(first);
+    }
+
+    for (const page of pagesToFetch.filter((p) => p !== 1)) {
+      await sleep(400);
+      const data = await fetchPage(page, start, end);
+      addFromPage(data);
     }
   }
-
-  // Reuse page 1 results if it's among the pages we want (saves a request)
-  if (pagesToFetch.includes(1)) {
-    addFromPage(first);
-  }
-
-  for (const page of pagesToFetch.filter((p) => p !== 1)) {
-    await sleep(400);
-    const data = await fetchPage(page, start, end);
-    addFromPage(data);
-  }
-
   if (characters.length < 25) {
     throw new Error(`Not enough characters from that period of time (${characters.length} found, 25 needed). Try a wider year range or a higher difficulty.`);
   }
@@ -140,8 +205,8 @@ export async function generateGame(yearStart, yearEnd, difficulty = "normal") {
   ]);
 
   return {
-    year_start:  yearStart,
-    year_end:    yearEnd,
+    year_start:  settings.isDbz ? 1989 : yearStart,
+    year_end:    settings.isDbz ? 1989 : yearEnd,
     difficulty,
     characters:  selected,
     grid_colors: colors,
