@@ -37,8 +37,8 @@ query ($page: Int, $start: FuzzyDateInt, $end: FuzzyDateInt) {
 // range, this fraction alone keeps "well-known density" roughly constant
 // regardless of period length — no separate per-year scaling needed.
 const DIFFICULTY_SETTINGS = {
-  casual:   { maxPageFraction: 0.05 },
-  normal:   { maxPageFraction: 0.15 },
+  casual:   { maxPageFraction: 0.01 },
+  normal:   { maxPageFraction: 0.03 },
   hardcore: { maxPageFraction: 1.00 },
 };
 
